@@ -1,0 +1,188 @@
+---
+title: "Placement"
+author: "Yicheng Shen"
+date: "Aug 6, 2024"
+output: 
+    pdf_document    
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = T, eval = T, cache = TRUE, warning = F, message = F)
+library(tidyverse)
+library(rvest)
+library(ggplot2)
+ggplot2::theme_set(ggplot2::theme_bw())
+knitr::opts_chunk$set(out.width = "100%", fig.align = 'center')
+```
+
+
+
+Note: the github repo for this work is: https://github.com/sheny2/Placement
+
+**Q1**
+
+*Task 1: Read the data*
+Scrape the wikipedia page on natural disasters
+```{r}
+url <- "https://en.wikipedia.org/wiki/List_of_natural_disasters_by_death_toll"
+
+webpage <- read_html(url)
+
+tables <- webpage %>% html_nodes("table.wikitable")
+
+# 20th and 21st century data are the 2nd and 3rd table of this page
+table_20th <- tables[[2]] %>% html_table(fill = TRUE)
+table_21st <- tables[[3]] %>% html_table(fill = TRUE)
+
+disasters <- rbind(table_20th, table_21st) %>% as_tibble()
+
+head(disasters)
+```
+
+
+*Task 2: Clean the data*
+Convert the death toll to numbers using the midpoints when a range is given and the bound when an upper or lower bound is given.
+
+
+```{r}
+disasters_clean = disasters
+
+disasters_clean$`Death toll` = disasters$`Death toll` %>%
+                                            str_remove_all(",") %>%          
+                                            str_remove_all("\\[.*?\\]") %>%  
+                                            str_remove_all("\\(.*?\\)") %>%  
+                                            str_remove_all("[a-zA-Z]") %>%   
+                                            str_trim()
+
+# which entries need special attention to clean
+list_of_clean = is.na(as.numeric(gsub("," ,"", disasters_clean$`Death toll`)))
+disasters$`Death toll`[list_of_clean]
+
+# use regular expression here
+convert_death_toll <- function(toll) {
+  if (str_detect(toll, "\\d+\\s*–\\s*\\d+")) {
+    nums <- str_extract_all(toll, "\\d+")[[1]] %>% as.numeric()
+    return(mean(nums))
+  } else if (str_detect(toll, "\\d+\\s*-\\s*\\d+")) {
+    nums <- str_extract_all(toll, "\\d+")[[1]] %>% as.numeric()
+    return(mean(nums))
+  } else if (str_detect(toll, ">\\s*\\d+")) {
+    return(as.numeric(str_extract(toll, "\\d+")))
+  } else if (str_detect(toll, "\\d+")) {
+    return(as.numeric(str_extract(toll, "\\d+")))
+  } 
+}
+
+death_toll_clean = round(sapply(disasters_clean$`Death toll`, convert_death_toll)) 
+death_toll_clean[list_of_clean] # check the results of those irregular ones
+
+disasters_clean$`Death toll` = death_toll_clean
+disasters_clean
+```
+
+
+*Task 3: Plot the data*
+
+```{r, fig.width=10, fig.height=4, out.width="75%"}
+# Convert the year to numeric
+disasters_clean <- disasters_clean %>%
+  mutate(Year = as.numeric(gsub("[^0-9]", "", `Year`)))
+
+# Plot the death toll by year, color-coded by kind of disaster
+ggplot(disasters_clean, aes(x = Year, y = `Death toll`, color = Type)) +
+  geom_point() +
+  labs(title = "Death Toll of Natural Disasters by Year",
+       x = "Year",
+       y = "Death Toll",
+       color = "Kind of Disaster") 
+
+
+ggplot(disasters_clean %>% filter(Event != "1931 China floods"), 
+       aes(x = Year, y = `Death toll`, color = Type)) +
+  geom_point() +
+  labs(title = "Death Toll of Natural Disasters by Year without one outlier",
+       x = "Year",
+       y = "Death Toll",
+       color = "Kind of Disaster") 
+```
+
+
+**Q2**
+
+First we derive the form of gradient by computing the derivative:
+$$\frac{\partial ||y-bx||^2}{\partial b} = 2(\frac{\partial \sum(y_i-bx_i)}{\partial b}) = 2(\frac{- x_i \sum(y_i-bx_i)}{n})$$
+
+```{r}
+# write the gradient descent function
+gradient_descent <- function(x, y, learning_rate, num_iter) {
+  b <- 0
+  n <- length(x)
+  
+  for (i in 1:num_iter) {
+    gradient <- -2 * sum(x * (y - b * x)) / n # compute gradient
+    b <- b - learning_rate * gradient # update here
+  }
+  
+  return(b)
+}
+
+# Test the function using randomly generated normal vectors
+set.seed(8848) 
+n <- 100
+x <- rnorm(n)
+b <- 2
+y <- b * x + rnorm(n)
+
+S <- 1000
+
+b_estimated <- gradient_descent(x, y, learning_rate = 0.01, num_iter = S)
+
+# Compare
+b
+b_estimated
+```
+
+```{r, out.width="80%"}
+b_est_all = c()
+
+# To test different learning rates
+test_learning_rates <- function(x, y, b, learning_rates, num_iter) {
+  results <- data.frame(learning_rate = c(), estimated_b = c())
+  
+  for (lr in learning_rates) {
+    b_est <- gradient_descent(x, y, lr, num_iter)
+    # error <- abs(b - b_est)
+    results <- rbind(results, data.frame(learning_rate = lr, estimated_b = b_est))
+  }
+  
+  return(results)
+}
+```
+
+**Findings**: The algorithm can perform well as long as we choose a reasonable value for the learning rate. 
+
+We can see from below that the learning rate should not be too small. A too-small step size can make it inefficient for the algorithm to explore and reach convergence or get stuck at a local min instead of global mean. 
+
+Meanwhile, we also do not want the step size to be too large at each update, which could cause our estimate to oscillate too much and miss the optimal point. 
+
+
+```{r, out.width="80%"}
+learning_rates <- seq(0.001, 0.1, by = 0.001)
+results <- test_learning_rates(x, y, b_true, learning_rates, num_iter = S)
+
+# Plot the results
+ggplot(results, aes(x = learning_rate, y = estimated_b)) +
+  geom_line() +
+  labs(title = "Estimate vs Learning Rate", x = "Learning Rate", y = "Estimate")
+```
+
+
+
+
+
+
+
+
+
+
