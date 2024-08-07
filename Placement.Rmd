@@ -129,27 +129,24 @@ x <- rnorm(n)
 b <- 5
 y <- b * x + rnorm(n)
 
-S <- 1000
+S <- 1000 # long enough
 
-b_grad <- gradient_descent(x, y, learning_rate = 0.02, num_iter = S)
+b_grad <- gradient_descent(x, y, learning_rate = 0.05, num_iter = S) # choose e to be 0.05
 
 # Compare
 b_solution <- x %*% y / (norm(x, type="2"))^2
-b_solution 
+b_solution %>% as.vector()
 b_grad # success! 
 ```
 
 ```{r, out.width="80%"}
-b_est_all = c()
-
 # To test different learning rates
 test_learning_rates <- function(x, y, b, learning_rates, num_iter) {
-  results <- data.frame(learning_rate = c(), estimated_b = c())
+  results <- data.frame(learning_rate = c(), b_est = c())
   
-  for (lr in learning_rates) {
-    b_est <- gradient_descent(x, y, lr, num_iter)
-    # error <- abs(b - b_est)
-    results <- rbind(results, data.frame(learning_rate = lr, estimated_b = b_est))
+  for (e in learning_rates) {
+    b_est <- gradient_descent(x, y, e, num_iter)
+    results <- rbind(results, data.frame(learning_rate = e, b_est = b_est))
   }
   
   return(results)
@@ -168,7 +165,7 @@ learning_rates <- seq(0.001, 0.1, by = 0.001)
 results <- test_learning_rates(x, y, b_true, learning_rates, num_iter = S)
 
 # Plot the results
-ggplot(results, aes(x = learning_rate, y = estimated_b)) +
+ggplot(results, aes(x = learning_rate, y = b_est)) +
   geom_line() +
   labs(title = "Estimate vs Learning Rate", x = "Learning Rate", y = "Estimate")
 ```
