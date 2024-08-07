@@ -1,6 +1,8 @@
 # Placement
 ## Yicheng Shen
 
+Codes and original plots are presented in the file named `Placement.Rmd`. 
+
 <img width="1041" alt="Screenshot 2024-08-06 at 8 03 54 PM" src="https://github.com/user-attachments/assets/6206ba39-3810-4afd-8681-59abab52e8ca">
 
 **To better understand the plot**
