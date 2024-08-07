@@ -187,9 +187,9 @@ test_learning_rates <- function(x, y, b, learning_rates, num_iter) {
 }
 ```
 
-**Findings**: The algorithm can perform well as long as we choose a reasonable value for the learning rate. 
+**Findings**: The algorithm can perform well usually when we choose a reasonable value for the learning rate, but it does not guarantee to work at all situations.
 
-We can see from below that the learning rate should not be too small. A too-small step size can make it inefficient for the algorithm to explore and reach convergence or get stuck at a local min instead of global mean, thus unable to find the correct solution. 
+We can see from below that the learning rate should not be too small. A too-small step size can make it inefficient for the algorithm to explore and reach convergence or get stuck at a local min instead of global one, thus unable to find the correct solution. 
 
 Meanwhile, we also do not want the step size to be too large at each update, which could cause our estimate to oscillate too much and miss the optimal point as well. 
 
