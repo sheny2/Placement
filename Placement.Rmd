@@ -30,15 +30,13 @@ Scrape the wikipedia page on natural disasters
 url <- "https://en.wikipedia.org/wiki/List_of_natural_disasters_by_death_toll"
 
 webpage <- read_html(url)
-
 tables <- webpage %>% html_nodes("table.wikitable")
 
-# 20th and 21st century data are in the 2nd and 3rd table of this page
+# quick check: 20th and 21st century data are in the 2nd and 3rd table of this page
 table_20th <- tables[[2]] %>% html_table(fill = TRUE)
 table_21st <- tables[[3]] %>% html_table(fill = TRUE)
 
 disasters <- rbind(table_20th, table_21st) %>% as_tibble() # merge into one
-
 head(disasters)
 ```
 
@@ -61,7 +59,7 @@ disasters_clean$`Death toll` = disasters$`Death toll` %>%
 index_to_clean = is.na(as.numeric(gsub("," ,"", disasters_clean$`Death toll`)))
 disasters_clean$`Death toll`[index_to_clean]
 
-# use regular expression here
+# use regular expression here (there seems to be two kinds of dashes here)
 convert_death_toll <- function(toll) {
   if (str_detect(toll, "\\d+\\s*–\\s*\\d+")) {
     nums <- str_extract_all(toll, "\\d+")[[1]] %>% as.numeric()
@@ -93,6 +91,14 @@ table(disasters_clean$Type)
 disasters_clean$Type = ifelse(disasters_clean$Type == "Heat Wave", "Heat wave", disasters_clean$Type)
 disasters_clean %>% group_by(Type) %>% summarise(Count = n(), `Total Death Toll` = sum(`Death toll`), `Average` = mean(`Death toll`), `Median` = median(`Death toll`))
 ```
+
+```{r, fig.width=10, fig.height=4, eval = F, echo = F}
+ggplot(disasters_clean, aes(x = Year, y = `Death toll`, color = Type)) +
+  geom_point() +
+  labs(title = "Death Toll of Natural Disasters by Year",
+       x = "Year", y = "Death Toll", color = "Type of Disaster")
+```
+
 
 
 ```{r, fig.width=12, fig.height=5}
@@ -134,7 +140,7 @@ grid.arrange(arrangeGrob(p1 + theme(legend.position="none"),
 
 **Q2**
 
-First we derive the form of gradient by computing the derivative w.r.t b:
+First we can derive the form of gradient by computing the derivative w.r.t b:
 $$\frac{\partial ||y-bx||^2}{\partial b} = 2(\frac{\partial \sum_i^n (y_i-bx_i)}{\partial b}) = 2(\frac{- \sum_i^n x_i (y_i-bx_i)}{n})$$
 
 ```{r}
@@ -195,7 +201,7 @@ results <- test_learning_rates(x, y, b_true, learning_rates, num_iter = S)
 # Plot the results
 ggplot(results, aes(x = learning_rate, y = b_est)) +
   geom_line() +
-  labs(title = "Estimate vs Learning Rate", x = "Learning Rate", y = "Estimate")
+  labs(title = "Estimate versus Learning Rate", x = "Learning Rate", y = "Estimate")
 ```
 
 
