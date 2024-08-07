@@ -47,7 +47,7 @@ Convert the death toll to numbers using the midpoints when a range is given and 
 
 ```{r}
 disasters_clean = disasters
-
+# remove unnecessary footnote, words and symbols
 disasters_clean$`Death toll` = disasters$`Death toll` %>%
                                             str_remove_all(",") %>%          
                                             str_remove_all("\\[.*?\\]") %>%  
@@ -56,8 +56,8 @@ disasters_clean$`Death toll` = disasters$`Death toll` %>%
                                             str_trim()
 
 # which entries need special attention to clean
-list_of_clean = is.na(as.numeric(gsub("," ,"", disasters_clean$`Death toll`)))
-disasters$`Death toll`[list_of_clean]
+index_to_clean = is.na(as.numeric(gsub("," ,"", disasters_clean$`Death toll`)))
+disasters$`Death toll`[index_to_clean]
 
 # use regular expression here
 convert_death_toll <- function(toll) {
@@ -75,7 +75,7 @@ convert_death_toll <- function(toll) {
 }
 
 death_toll_clean = round(sapply(disasters_clean$`Death toll`, convert_death_toll)) 
-death_toll_clean[list_of_clean] # check the results of those irregular ones
+death_toll_clean[index_to_clean] # check the results of those irregular ones
 
 disasters_clean$`Death toll` = death_toll_clean
 disasters_clean
@@ -84,19 +84,15 @@ disasters_clean
 
 *Task 3: Plot the data*
 
-```{r, fig.width=10, fig.height=4, out.width="75%"}
-# Convert the year to numeric
-disasters_clean <- disasters_clean %>%
-  mutate(Year = as.numeric(gsub("[^0-9]", "", `Year`)))
+Disasters have happened frequently throughout the years. While at one time floods caused one of the highest death tolls, it should be noted that earthquakes are often the leading ones causing fatalities. Both topical cyclones and earthquakes seem to be the most frequent and deadly disasters during the studied period.
 
-# Plot the death toll by year, color-coded by kind of disaster
+```{r, fig.width=10, fig.height=4, out.width="75%"}
 ggplot(disasters_clean, aes(x = Year, y = `Death toll`, color = Type)) +
   geom_point() +
   labs(title = "Death Toll of Natural Disasters by Year",
        x = "Year",
        y = "Death Toll",
-       color = "Kind of Disaster") 
-
+       color = "Type of Disaster") 
 
 ggplot(disasters_clean %>% filter(Event != "1931 China floods"), 
        aes(x = Year, y = `Death toll`, color = Type)) +
@@ -104,26 +100,25 @@ ggplot(disasters_clean %>% filter(Event != "1931 China floods"),
   labs(title = "Death Toll of Natural Disasters by Year without one outlier",
        x = "Year",
        y = "Death Toll",
-       color = "Kind of Disaster") 
+       color = "Type of Disaster") 
 ```
 
 
 **Q2**
 
-First we derive the form of gradient by computing the derivative:
-$$\frac{\partial ||y-bx||^2}{\partial b} = 2(\frac{\partial \sum(y_i-bx_i)}{\partial b}) = 2(\frac{- x_i \sum(y_i-bx_i)}{n})$$
+First we derive the form of gradient by computing the derivative w.r.t b:
+$$\frac{\partial ||y-bx||^2}{\partial b} = 2(\frac{\partial \sum_i^n (y_i-bx_i)}{\partial b}) = 2(\frac{- \sum_i^n x_i (y_i-bx_i)}{n})$$
 
 ```{r}
 # write the gradient descent function
 gradient_descent <- function(x, y, learning_rate, num_iter) {
-  b <- 0
+  b <- 0 # start at 0, or somewhere
   n <- length(x)
   
   for (i in 1:num_iter) {
     gradient <- -2 * sum(x * (y - b * x)) / n # compute gradient
     b <- b - learning_rate * gradient # update here
   }
-  
   return(b)
 }
 
@@ -131,16 +126,17 @@ gradient_descent <- function(x, y, learning_rate, num_iter) {
 set.seed(8848) 
 n <- 100
 x <- rnorm(n)
-b <- 2
+b <- 5
 y <- b * x + rnorm(n)
 
 S <- 1000
 
-b_estimated <- gradient_descent(x, y, learning_rate = 0.01, num_iter = S)
+b_grad <- gradient_descent(x, y, learning_rate = 0.02, num_iter = S)
 
 # Compare
-b
-b_estimated
+b_solution <- x %*% y / (norm(x, type="2"))^2
+b_solution 
+b_grad # success! 
 ```
 
 ```{r, out.width="80%"}
@@ -162,9 +158,9 @@ test_learning_rates <- function(x, y, b, learning_rates, num_iter) {
 
 **Findings**: The algorithm can perform well as long as we choose a reasonable value for the learning rate. 
 
-We can see from below that the learning rate should not be too small. A too-small step size can make it inefficient for the algorithm to explore and reach convergence or get stuck at a local min instead of global mean. 
+We can see from below that the learning rate should not be too small. A too-small step size can make it inefficient for the algorithm to explore and reach convergence or get stuck at a local min instead of global mean, thus unable to find the correct solution. 
 
-Meanwhile, we also do not want the step size to be too large at each update, which could cause our estimate to oscillate too much and miss the optimal point. 
+Meanwhile, we also do not want the step size to be too large at each update, which could cause our estimate to oscillate too much and miss the optimal point as well. 
 
 
 ```{r, out.width="70%"}
