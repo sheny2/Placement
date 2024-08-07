@@ -7,8 +7,8 @@ Codes and original plots are presented in the file named `Placement.Rmd`.
 
 **To better understand the plot**
 
-Each point represents a specific natural disaster event.
-We have `year` as each point along the horizontal axis represents a specific year from the 20th and 21st centuries. 
+Each point/bar represents a specific natural disaster event.
+We have `Year` along the horizontal axis represents a specific year from the 20th and 21st centuries. 
 We also have the vertical axis showing `Death Toll`, or the number of people who died in each disaster. 
 Different types of disasters are represented by different colors. For example, earthquakes, floods, tsunamis, and other types of disasters each have their own color.
 
@@ -16,7 +16,6 @@ Different types of disasters are represented by different colors. For example, e
 **Interpretation**
 
 This work describes the death tolls of various disasters during the 20th and 21st centuries. 
-As we can see from the plot, disasters have happened frequently throughout the years.
-While at one time floods caused one of the highest death tolls, it should be noted that earthquakes are often the leading ones causing fatalities.
-Both topical cyclones and earthquakes seem to be the most frequent and deadly disasters during the studied period.  
+As we can see from the plot, deadly disasters have happened frequently throughout the years. 
+While at one time floods caused one of the highest death tolls, it should be noted that earthquakes appear more as the leading ones causing fatalities. Both topical cyclones and earthquakes seem to be the very frequent and deadly disasters during the studied period..  
 
