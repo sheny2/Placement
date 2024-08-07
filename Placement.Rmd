@@ -31,11 +31,11 @@ webpage <- read_html(url)
 
 tables <- webpage %>% html_nodes("table.wikitable")
 
-# 20th and 21st century data are the 2nd and 3rd table of this page
+# 20th and 21st century data are in the 2nd and 3rd table of this page
 table_20th <- tables[[2]] %>% html_table(fill = TRUE)
 table_21st <- tables[[3]] %>% html_table(fill = TRUE)
 
-disasters <- rbind(table_20th, table_21st) %>% as_tibble()
+disasters <- rbind(table_20th, table_21st) %>% as_tibble() # merge into one
 
 head(disasters)
 ```
@@ -44,20 +44,19 @@ head(disasters)
 *Task 2: Clean the data*
 Convert the death toll to numbers using the midpoints when a range is given and the bound when an upper or lower bound is given.
 
-
 ```{r}
 disasters_clean = disasters
 # remove unnecessary footnote, words and symbols
 disasters_clean$`Death toll` = disasters$`Death toll` %>%
-                                            str_remove_all(",") %>%          
+                                            str_remove_all(",") %>%
                                             str_remove_all("\\[.*?\\]") %>%  
-                                            str_remove_all("\\(.*?\\)") %>%  
                                             str_remove_all("[a-zA-Z]") %>%   
+                                            str_remove_all("\\(.*?\\)") %>%  
                                             str_trim()
 
 # which entries need special attention to clean
 index_to_clean = is.na(as.numeric(gsub("," ,"", disasters_clean$`Death toll`)))
-disasters$`Death toll`[index_to_clean]
+disasters_clean$`Death toll`[index_to_clean]
 
 # use regular expression here
 convert_death_toll <- function(toll) {
@@ -67,8 +66,6 @@ convert_death_toll <- function(toll) {
   } else if (str_detect(toll, "\\d+\\s*-\\s*\\d+")) {
     nums <- str_extract_all(toll, "\\d+")[[1]] %>% as.numeric()
     return(mean(nums))
-  } else if (str_detect(toll, ">\\s*\\d+")) {
-    return(as.numeric(str_extract(toll, "\\d+")))
   } else if (str_detect(toll, "\\d+")) {
     return(as.numeric(str_extract(toll, "\\d+")))
   } 
@@ -86,7 +83,7 @@ disasters_clean
 
 Disasters have happened frequently throughout the years. While at one time floods caused one of the highest death tolls, it should be noted that earthquakes are often the leading ones causing fatalities. Both topical cyclones and earthquakes seem to be the most frequent and deadly disasters during the studied period.
 
-```{r, fig.width=10, fig.height=4, out.width="75%"}
+```{r, fig.width=10, fig.height=4, out.width="80%"}
 ggplot(disasters_clean, aes(x = Year, y = `Death toll`, color = Type)) +
   geom_point() +
   labs(title = "Death Toll of Natural Disasters by Year",
