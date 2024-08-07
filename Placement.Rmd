@@ -8,7 +8,7 @@ output:
 
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = T, eval = T, cache = TRUE, warning = F, message = F)
+knitr::opts_chunk$set(echo = T, eval = T, cache = F, warning = F, message = F)
 library(tidyverse)
 library(rvest)
 library(ggplot2)
@@ -167,7 +167,7 @@ We can see from below that the learning rate should not be too small. A too-smal
 Meanwhile, we also do not want the step size to be too large at each update, which could cause our estimate to oscillate too much and miss the optimal point. 
 
 
-```{r, out.width="80%"}
+```{r, out.width="70%"}
 learning_rates <- seq(0.001, 0.1, by = 0.001)
 results <- test_learning_rates(x, y, b_true, learning_rates, num_iter = S)
 
